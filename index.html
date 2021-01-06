@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Assembly</title>
+</head>
+<body>
+<div id="app">
+    <button @click="importCSV">import</button>
+    <div v-if="csv">{{ csv }}</div>
+</div>
+<script src="//unpkg.com/vue@v2.6.12/dist/vue.min.js"></script>
+<script src="//unpkg.com/axios/dist/axios.min.js"></script>
+<script type="module">
+    import * as mod from './pkg/csv_parser.js'
+    (async () => {
+        await mod.default()
+        const app = new Vue({
+            el: '#app',
+            data: {
+                csv: null
+            },
+            methods:{
+                async importCSV(event) {
+                    this.csv = null
+                    // TODO: static下にCSVファイルを置くこと
+                    await axios.get('./static/product.csv').then(
+                        response => {
+                            this.csv = response.data
+                            mod.product_csv_to_generate(this.csv)
+                            console.log(this.csv)
+                        }
+                    )
+                }
+            }
+        })
+    })()
+</script>
+</body>
+</html>
