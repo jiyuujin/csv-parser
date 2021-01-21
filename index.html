@@ -7,34 +7,39 @@
 </head>
 <body>
 <div id="app">
-    <button @click="importCSV">import</button>
-    <div v-if="csv">{{ csv }}</div>
+    <import-csv-app />
 </div>
-<script src="//unpkg.com/vue@v2.6.12/dist/vue.min.js"></script>
+<script src="//unpkg.com/vue@v3.0.5/dist/vue.global.js"></script>
 <script src="//unpkg.com/axios/dist/axios.min.js"></script>
 <script type="module">
     import * as mod from './pkg/csv_parser.js'
     (async () => {
         await mod.default()
-        const app = new Vue({
-            el: '#app',
-            data: {
-                csv: null
-            },
-            methods:{
-                async importCSV(event) {
-                    this.csv = null
+        const app = Vue.createApp({
+            template: `<import-csv-app />`
+        })
+        app.component('import-csv-app', {
+            template: `
+                <button @click="importCSV">import</button>
+                <div v-if="csv">{{ csv }}</div>
+            `,
+            setup() {
+                const csv = Vue.ref(null)
+                const importCSV = async (event) => {
+                    csv.value = null
                     // TODO: static下にCSVファイルを置くこと
                     await axios.get('./static/product.csv').then(
                         response => {
-                            this.csv = response.data
-                            mod.product_csv_to_generate(this.csv)
-                            console.log(this.csv)
+                            csv.value = response.data
+                            mod.product_csv_to_generate(csv.value)
+                            console.log(csv.value)
                         }
                     )
                 }
+                return { csv, importCSV }
             }
         })
+        app.mount('#app')
     })()
 </script>
 </body>
